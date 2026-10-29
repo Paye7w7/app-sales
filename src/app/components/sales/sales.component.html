@@ -1,0 +1,28 @@
+<main class="sales-history container py-4 px-3 px-lg-4">
+  <section class="history-hero">
+    <div><p class="eyebrow"><i class="ri-file-list-3-line"></i> Registro comercial</p><h1>Historial de ventas</h1><p>Consulta el detalle y los descuentos de cada transacción.</p></div>
+    <button class="refresh-button" (click)="loadSales()" [disabled]="loading"><i class="ri-refresh-line" [class.spinning]="loading"></i>{{ loading ? 'Actualizando...' : 'Actualizar' }}</button>
+  </section>
+
+  <div *ngIf="message" class="feedback success"><i class="ri-checkbox-circle-line"></i>{{ message }}</div>
+  <div *ngIf="error" class="feedback danger"><i class="ri-error-warning-line"></i>{{ error }}</div>
+  <div *ngIf="loading" class="loading-panel" role="status"><span class="loader-orbit"><i class="ri-file-list-3-line"></i></span><div><strong>Buscando tus ventas</strong><p>Actualizando el historial...</p></div></div>
+  <div *ngIf="!loading && sales.length === 0" class="empty-history"><i class="ri-receipt-line"></i><h2>Aún no hay ventas registradas</h2><p>Las ventas que registres aparecerán aquí.</p></div>
+
+  <article *ngFor="let sale of sales" class="sale-card">
+    <header><div class="sale-id"><span><i class="ri-receipt-line"></i></span><div><h2>Venta #{{ sale.id }}</h2><p><i class="ri-calendar-event-line"></i> {{ sale.created_at }}</p></div></div><button class="delete-button" [disabled]="deletingId !== null" (click)="openDeleteModal(sale.id)"><i class="ri-delete-bin-6-line"></i> Eliminar</button></header>
+    <div class="table-responsive"><table class="table history-table align-middle mb-0"><thead><tr><th>Producto</th><th>Cantidad</th><th>Subtotal</th><th>Descuento</th><th>Final</th></tr></thead><tbody><tr *ngFor="let detail of sale.details"><td><strong>{{ detail.product || 'Producto no disponible' }}</strong></td><td><span class="quantity-pill">{{ detail.quantity }}</span></td><td>Bs {{ detail.subtotal }}</td><td class="discount">{{ detail.discount_percent }}% <span>− Bs {{ detail.discount_amount }}</span></td><td><strong class="final">Bs {{ detail.subtotal_with_discount }}</strong></td></tr></tbody></table></div>
+    <footer><span>Descuento total <strong>− Bs {{ sale.total_discount }}</strong></span><div><small>Total pagado</small><strong>Bs {{ sale.total }}</strong></div></footer>
+  </article>
+</main>
+
+<div *ngIf="pendingDeleteId !== null" class="delete-modal-backdrop" role="presentation" (click)="cancelDelete()">
+  <section class="delete-modal" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" (click)="$event.stopPropagation()">
+    <button type="button" class="modal-close" (click)="cancelDelete()" [disabled]="deletingId !== null" aria-label="Cerrar"><i class="ri-close-line"></i></button>
+    <span class="modal-icon"><i class="ri-delete-bin-6-line"></i></span>
+    <p class="modal-eyebrow">Acción irreversible</p>
+    <h2 id="delete-modal-title">¿Eliminar venta #{{ pendingDeleteId }}?</h2>
+    <p>Se eliminará el registro de la venta y todos sus detalles. Esta acción no se puede deshacer.</p>
+    <div class="modal-actions"><button type="button" class="modal-cancel" (click)="cancelDelete()" [disabled]="deletingId !== null">Conservar venta</button><button type="button" class="modal-confirm" (click)="confirmDelete()" [disabled]="deletingId !== null"><span *ngIf="deletingId !== null" class="mini-spinner"></span><i *ngIf="deletingId === null" class="ri-delete-bin-6-line"></i>{{ deletingId !== null ? 'Eliminando...' : 'Sí, eliminar' }}</button></div>
+  </section>
+</div>

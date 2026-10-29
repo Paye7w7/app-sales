@@ -1,19 +1,29 @@
-<nav class="navbar navbar-dark navbar-expand-lg">
-  <div class="container-md">
-    <a class="navbar-brand" routerLink="/">Prueba<span>Tecnica</span></a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarToggler"
-      aria-controls="navbarToggler" aria-expanded="false" aria-label="Toggle navigation">
+<nav class="navbar navbar-expand-lg navbar-light sales-navbar">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand" routerLink="/home" aria-label="Ir al inicio">
+      <span class="brand-mark"><i class="ri-store-2-line"></i></span>
+      <span class="brand-copy"><small>Panel de control</small><strong>Sistema de Ventas</strong></span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVentas"
+      aria-controls="navbarVentas" aria-expanded="false" aria-label="Mostrar menú">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarToggler">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item me-lg-2">
-          <a class="nav-link" routerLinkActive="active" routerLink="/inicio">Inicio</a>
+
+    <div class="collapse navbar-collapse" id="navbarVentas">
+      <ul class="navbar-nav ms-lg-auto align-items-lg-center">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/home" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="ri-shopping-bag-3-line"></i><span>Productos y ventas</span>
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLinkActive="active" routerLink="/posts">Posts</a>
+          <a class="nav-link" routerLink="/sales" routerLinkActive="active">
+            <i class="ri-file-list-3-line"></i><span>Historial de ventas</span>
+          </a>
         </li>
       </ul>
+      <span class="navbar-status"><i class="ri-checkbox-circle-fill"></i> En linea</span>
     </div>
   </div>
 </nav>

@@ -1,3 +1,166 @@
-<section class="d-flex align-items-center justify-content-center flex-column text-center">
-  <h1 class="fw-bold mb-3">Bienvenid@ </h1>
-</section>
+<main class="sales-dashboard container-fluid px-3 px-lg-4 py-4">
+  <section class="page-hero">
+    <div class="hero-copy">
+      <p class="eyebrow"><i class="ri-store-2-line"></i> Punto de venta</p>
+      <h1>Control de ventas</h1>
+      <p>Administra tu catálogo, stock y ventas desde un espacio claro y organizado.</p>
+    </div>
+  </section>
+
+  <section class="quick-overview" aria-label="Resumen operativo">
+    <article><span class="overview-icon blue"><i class="ri-box-3-line"></i></span>
+      <div><small>Catálogo activo</small><strong>{{ products.length }}</strong>
+        <p>productos disponibles</p>
+      </div>
+    </article>
+    <article><span class="overview-icon violet"><i class="ri-shopping-cart-2-line"></i></span>
+      <div><small>Pedido actual</small><strong>{{ cart.length }}</strong>
+        <p>productos en el carrito</p>
+      </div>
+    </article>
+    <article><span class="overview-icon green"><i class="ri-money-dollar-circle-line"></i></span>
+      <div><small>Total estimado</small><strong>Bs {{ total | number:'1.2-2' }}</strong>
+        <p>importe a registrar</p>
+      </div>
+    </article>
+  </section>
+
+  <div *ngIf="message" class="feedback success"><i class="ri-checkbox-circle-line"></i>{{ message }}</div>
+  <div *ngIf="error" class="feedback danger"><i class="ri-error-warning-line"></i>{{ error }}</div>
+
+  <div *ngIf="loading" class="loading-panel" role="status">
+    <span class="loader-orbit"><i class="ri-shopping-bag-3-line"></i></span>
+    <div><strong>Preparando tu catálogo</strong>
+      <p>Cargando productos disponibles...</p>
+    </div>
+  </div>
+
+  <div class="row g-4" *ngIf="!loading">
+    <div class="col-12 col-xl-8">
+      <section class="surface-card products-card">
+        <header class="card-heading">
+          <div><span class="icon-box dark"><i class="ri-layout-grid-line"></i></span>
+            <div>
+              <p class="label">Inventario</p>
+              <h2>Productos disponibles</h2>
+            </div>
+          </div>
+          <span class="counter">{{ products.length }} productos</span>
+        </header>
+        <div class="table-responsive">
+          <table class="table products-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th class="text-end">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let product of products">
+                <td>
+                  <div class="product-cell">
+                    <div class="product-image"><img *ngIf="product.image" [src]="product.image" [alt]="product.name"><i
+                        *ngIf="!product.image" class="ri-image-line"></i></div>
+                    <div><strong>{{ product.name }}</strong><small>Referencia #{{ product.id }}</small></div>
+                  </div>
+                </td>
+                <td><strong class="price">Bs {{ product.price }}</strong></td>
+                <td><span class="stock-pill" [class.out]="product.stock <= 0"><i class="ri-checkbox-circle-fill"></i>{{
+                    product.stock }} {{ product.stock === 1 ? 'unidad' : 'unidades' }}</span></td>
+                <td class="text-end">
+                  <div class="product-actions">
+                    <button type="button" class="btn-view" (click)="openProductModal(product)" [attr.aria-label]="'Ver información de ' + product.name"><i class="ri-eye-line"></i></button>
+                    <button type="button" class="btn-add" [disabled]="product.stock <= 0 || saving"
+                      (click)="addToCart(product)"><i class="ri-add-line"></i> Agregar</button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="products.length === 0">
+                <td colspan="4">
+                  <div class="empty-state"><i class="ri-inbox-2-line"></i>
+                    <p>No hay productos disponibles.</p>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <div class="col-12 col-xl-4">
+      <aside class="surface-card cart-card">
+        <header class="card-heading">
+          <div><span class="icon-box primary"><i class="ri-shopping-cart-2-line"></i></span>
+            <div>
+              <p class="label">Pedido actual</p>
+              <h2>Carrito de ventas</h2>
+            </div>
+          </div><div class="cart-header-actions"><button *ngIf="cart.length > 0" type="button" class="clear-cart-button" [disabled]="saving" (click)="clearCart()"><i class="ri-delete-bin-6-line"></i> Limpiar</button><span class="cart-count">{{ cart.length }}</span></div>
+        </header>
+        <div class="cart-body">
+          <div class="cart-items-scroll">
+          <div *ngIf="cart.length === 0" class="cart-empty"><span><i class="ri-shopping-basket-line"></i></span>
+            <h3>Tu carrito está vacío</h3>
+            <p>Agrega productos del catálogo para iniciar una venta.</p>
+          </div>
+          <article *ngFor="let item of cart" class="cart-item">
+            <div class="item-title">
+              <div>
+                <h3>{{ item.product.name }}</h3><span>Bs {{ item.product.price }} por unidad</span>
+              </div><button type="button" class="remove-button" [disabled]="saving"
+                (click)="removeFromCart(item.product.id)" aria-label="Quitar producto"><i
+                  class="ri-delete-bin-6-line"></i></button>
+            </div>
+            <div class="cart-controls"><label>Cantidad<input type="number" min="1" [max]="item.product.stock"
+                  [ngModel]="item.quantity" [disabled]="saving"
+                  (ngModelChange)="changeQuantity(item, $event)"></label><label>Descuento <span>(máx. 10%)</span>
+                <div class="discount-input"><input type="number" min="0" max="10" step="0.01"
+                    [ngModel]="item.discount_percent" [disabled]="saving"
+                    (ngModelChange)="changeDiscount(item, $event)"><b>%</b></div>
+              </label></div>
+            <label class="d-block small fw-semibold text-muted mb-2">
+              Ajustar descuento: <strong class="text-primary">{{ item.discount_percent }}%</strong>
+              <input type="range" class="form-range mt-2" min="0" max="10" step="0.25"
+                [ngModel]="item.discount_percent" [disabled]="saving"
+                (ngModelChange)="changeDiscount(item, $event)" style="accent-color: #3563e9">
+            </label>
+            <div class="item-calculation"><span>Subtotal original <strong>Bs {{ getSubtotal(item) | number:'1.2-2'
+                  }}</strong></span><span class="discount">Descuento <strong>− Bs {{ getDiscountAmount(item) |
+                  number:'1.2-2' }}</strong></span><span>Total del producto <strong>Bs {{ getSubtotalWithDiscount(item)
+                  | number:'1.2-2' }}</strong></span></div>
+          </article>
+          </div>
+          <div class="cart-summary" [class.is-empty]="cart.length === 0">
+            <div><span>Subtotal</span><strong>Bs {{ totalBeforeDiscount | number:'1.2-2' }}</strong></div>
+            <div class="summary-discount"><span>Descuentos</span><strong>− Bs {{ totalDiscount | number:'1.2-2'
+                }}</strong></div>
+            <div class="payable"><span>Total a pagar</span><strong>Bs {{ total | number:'1.2-2' }}</strong></div>
+          </div>
+          <button type="button" class="checkout-button" [disabled]="cart.length === 0 || saving"
+            (click)="createSale()"><span *ngIf="saving" class="button-spinner"></span><i *ngIf="!saving"
+              class="ri-secure-payment-line"></i>{{ saving ? 'Registrando venta...' : 'Registrar venta' }}</button>
+          <p class="cart-note"><i class="ri-information-line"></i> El descuento permitido es del 0 al 10 % por producto.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<div *ngIf="selectedProduct" class="product-modal-backdrop" role="presentation" (click)="closeProductModal()">
+  <section class="product-modal" role="dialog" aria-modal="true" aria-labelledby="product-modal-title" (click)="$event.stopPropagation()">
+    <button type="button" class="product-modal-close" (click)="closeProductModal()" aria-label="Cerrar"><i class="ri-close-line"></i></button>
+    <div class="product-modal-image"><img *ngIf="selectedProduct.image" [src]="selectedProduct.image" [alt]="selectedProduct.name"><i *ngIf="!selectedProduct.image" class="ri-image-line"></i></div>
+    <p class="product-modal-label">Detalle de producto</p>
+    <h2 id="product-modal-title">{{ selectedProduct.name }}</h2>
+    <p class="product-modal-reference">Referencia #{{ selectedProduct.id }}</p>
+    <div class="product-modal-data"><div><span>Precio unitario</span><strong>Bs {{ selectedProduct.price }}</strong></div><div><span>Stock disponible</span><strong [class.out-of-stock]="selectedProduct.stock <= 0">{{ selectedProduct.stock }} {{ selectedProduct.stock === 1 ? 'unidad' : 'unidades' }}</strong></div></div>
+    <div class="product-modal-actions">
+      <button type="button" class="product-modal-secondary" (click)="closeProductModal()">Cerrar</button>
+      <button type="button" class="product-modal-button" [disabled]="selectedProduct.stock <= 0 || saving" (click)="addSelectedProductToCart()"><i class="ri-shopping-cart-2-line"></i>{{ selectedProduct.stock <= 0 ? 'Sin stock' : 'Añadir al carrito' }}</button>
+    </div>
+  </section>
+</div>

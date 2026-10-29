@@ -40,3 +40,8 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+# Archivos generados y privados
+/.angular/
+.env
+.env.*
+!.env.example
